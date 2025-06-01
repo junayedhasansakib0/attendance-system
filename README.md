@@ -19,7 +19,7 @@ A Python-based facial recognition attendance system that uses `face_recognition`
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/facial-attendance-system.git
+git clone https://github.com/junayedhasansakib0/attendance-system.git
 cd facial-attendance-system
 ```
 

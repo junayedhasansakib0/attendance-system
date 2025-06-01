@@ -3,6 +3,7 @@ import face_recognition
 import numpy as np
 import os
 import pandas as pd
+import time
 from datetime import datetime
 import tkinter as tk
 from tkinter import simpledialog, messagebox
@@ -13,8 +14,9 @@ engine = None
 try:
     engine = pyttsx3.init()
     engine.setProperty('rate', 150)  # Set speech rate
-    voices = engine.getProperty('voices')
-    engine.setProperty('voice', voices[0].id)
+    # Optional: Set voice ID (uncomment and customize if specific voice is needed)
+    # voices = engine.getProperty('voices')
+    # engine.setProperty('voice', voices[0].id)
     print("Text-to-Speech engine initialized.")
 except Exception as e:
     print(f"Error initializing Text-to-Speech engine: {e}")
@@ -63,7 +65,7 @@ def load_known_faces():
                     roll = "N/A"
                 known_face_names.append(name)
                 known_face_rolls.append(roll)
-    print(f"Loaded {len(known_face_encodings)} known faces.")
+    speak(f"Loaded {len(known_face_encodings)} known faces.")
 
 
 # Initially load known faces
@@ -149,6 +151,46 @@ def mark_attendance(name, roll):
     speak(f"Attendance marked for {name}, roll {roll} at {current_time}.")
 
 
+# NEW FUNCTION: Generate a summary report of present and absent students
+def generate_attendance_summary():
+    today = datetime.now().strftime("%Y-%m-%d")
+    summary_file = os.path.join("attendance_records", f"summary_{today}.txt")
+
+    present_students = attendance_taken_today
+    absent_students = []
+
+    # Determine who is absent
+    for i in range(len(known_face_names)):
+        name = known_face_names[i]
+        roll = known_face_rolls[i]
+        if (name, roll) not in present_students:
+            absent_students.append((name, roll))
+
+    # Sort for better readability
+    present_list = sorted(list(present_students))
+    absent_list = sorted(absent_students)
+
+    with open(summary_file, 'w', encoding='utf-8') as f:
+        f.write(f"--- Attendance Summary for {today} ---\n\n")
+
+        f.write("--- PRESENT STUDENTS ---\n")
+        if present_list:
+            for name, roll in present_list:
+                f.write(f"Name: {name}, Roll: {roll}\n")
+        else:
+            f.write("No students were marked present today.\n")
+
+        f.write("\n--- ABSENT STUDENTS ---\n")
+        if absent_list:
+            for name, roll in absent_list:
+                f.write(f"Name: {name}, Roll: {roll}\n")
+        else:
+            f.write("All known students were present today.\n")
+
+    speak(f"Attendance summary report generated for {today}. Check {summary_file} for details.")
+    print(f"Attendance summary report generated for {today} at {summary_file}")
+
+
 # Function to start the attendance system
 def take_attendance():
     global attendance_taken_today
@@ -212,7 +254,7 @@ def take_attendance():
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
-            speak("Attendance system stopped. Goodbye!")
+            speak("Attendance system stopped. Generating summary report.")  # <--- Change here
             break
         elif key == ord('e'):
             speak("Enroll new face mode activated.")
@@ -224,17 +266,20 @@ def take_attendance():
 
     video_capture.release()
     cv2.destroyAllWindows()
-    speak("Attendance system stopped.")
+
+    # NEW CALL: Generate summary report after attendance session ends
+    generate_attendance_summary()
+
+    speak("Attendance system session completed.")  # <--- Change here, updated message
 
 
 # Main menu function
 def main_menu():
     while True:
-
-        print("\n--- Attendance System Menu ---")
-        print("1. Enroll New Face")
-        print("2. Start Attendance")
-        print("3. Exit")
+        speak("\n--- Attendance System Menu ---")
+        speak("1. Enroll New Face")
+        speak("2. Start Attendance")
+        speak("3. Exit")
 
         choice = input("Enter your choice: ")
 

@@ -1,0 +1,5 @@
+. OB
+known_faces/
+attendance_records/
+*.pyc
+__pycache__/
